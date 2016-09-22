@@ -1,7 +1,11 @@
+# Scanning your Webextension
+
+This scanner is most useful for those considering porting an existing Chrome extension to Firefox.  If you are starting a new Webextension, [web-ext] and the [documentation on MDN] is probably enough to get you started.  If you are porting an extension, you can run these scripts against your addon to get an idea of what areas you may run into issues or incompatibilities.  With this information you can evaluate if there are workarounds, or if you can remove some functionality to get your extension working on Firefox.  If there is some core functionality that you cannot port due to missing APIs, you may also consider using [hybrid extensions] to backfill some functionality using legacy bootstrap addons for Firefox, while still sharing much of your code between browsers.  You can also view http://arewewebextensionsyet.com for links to specific APIs.
+
 # Installation
 
 1. Install node.js and python if you do not have them
-2. Install web-ext [npm install --global web-ext]
+2. Install [web-ext] using `npm install --global web-ext`
    * or from https://github.com/mozilla/web-ext
 3. clone this repository
 
@@ -26,7 +30,7 @@ hg clone https://hg.mozilla.org/mozilla-central
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Source_Code/Mercurial
 
-NOTE: report.sh will report against the version of Firefox that the schema files are pulled from.  If you want to test against an older version of Firefox you should pull from that repository.  The schema files in this repository are from Firefox Nightly.
+**NOTE:** report.sh will report against the version of Firefox that the schema files are pulled from.  If you want to test against an older version of Firefox you should pull from that repository.  The schema files in this repository are from Firefox Nightly.
 
 # report.sh output
 
@@ -46,10 +50,10 @@ Rank is based on the number of times you use the API in your addon.  Lower the r
 
 # lint.sh output
 
-lint.sh is a shortcut script for running web-ext lint on your addon.  It will produce additional output 
+lint.sh is a shortcut script for running [web-ext] lint on your addon.  It will produce additional output 
 describing other potential problems, such as syntax errors, or problems in the manifest file.
 
-NOTE: web-ext output may not be up-to-date with the API status, however it is usefull for scanning the code and manifest.
+**NOTE:** [web-ext] output may not be up-to-date with the API status, however it is usefull for scanning the code and manifest.
 
 # Example output
 
@@ -149,7 +153,7 @@ Bug      1275275: New windows should not be animated to their final size/positio
 
 ## lint.sh
 
-NOTE: web-ext output may not be up-to-date with the API status, however it is usefull for scanning the code and manifest.
+**NOTE:** web-ext output may not be up-to-date with the API status, however it is usefull for scanning the code and manifest.
 
 ```
 Validation Summary:
@@ -193,3 +197,7 @@ NO_DOCUMENT_WRITE       Use of document.write           document.write will fail
                                                         repercussions when used improperly. Therefore, it should
                                                         not be used.
 ```
+
+[web-ext]: https://github.com/mozilla/web-ext
+[documentation on MDN]: https://developer.mozilla.org/en-US/Add-ons/WebExtensions
+[hybrid extensions]: https://github.com/rpl/webextensions-examples/tree/examples/hybrid-addons/embedded-webextension-bootstrapped
