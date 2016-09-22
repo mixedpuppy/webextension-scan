@@ -47,6 +47,8 @@ Rank is based on the number of times you use the API in your addon.  Lower the r
 lint.sh is a shortcut script for running web-ext lint on your addon.  It will produce additional output 
 describing other potential problems, such as syntax errors, or problems in the manifest file.
 
+NOTE: web-ext output may not be up-to-date with the API status, however it is usefull for scanning the code and manifest.
+
 # Example output
 
 ## report.sh
@@ -144,6 +146,8 @@ Bug      1275275: New windows should not be animated to their final size/positio
 ```
 
 ## lint.sh
+
+NOTE: web-ext output may not be up-to-date with the API status, however it is usefull for scanning the code and manifest.
 
 ```
 Validation Summary:
