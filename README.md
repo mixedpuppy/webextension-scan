@@ -26,6 +26,8 @@ hg clone https://hg.mozilla.org/mozilla-central
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Source_Code/Mercurial
 
+NOTE: report.sh will report against the version of Firefox that the schema files are pulled from.  If you want to test against an older version of Firefox you should pull from that repository.  The schema files in this repository are from Firefox Nightly.
+
 # report.sh output
 
 report.sh produces a report of API usage in your addon.  It will contain a status, rank and 
