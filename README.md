@@ -18,7 +18,8 @@ If you need to download from the chrome store, you can use http://chrome-extensi
 
 ## updating schemas
 
-The report generator uses schemas from the mozilla code base.  I'll update them here occassionaly, 
+The report generator uses schemas from the mozilla code base for each branch (nightly, aurora, beta, release).
+I'll update them here occasionally,
 but if you need an update, you can get the files from the mozilla-central repository by first 
 cloning that then running update.sh.  mozilla-central should be a sibling of your clone of this repository.
 
@@ -26,19 +27,18 @@ hg clone https://hg.mozilla.org/mozilla-central
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Source_Code/Mercurial
 
-NOTE: report.sh will report against the version of Firefox that the schema files are pulled from.  If you want to test against an older version of Firefox you should pull from that repository.  The schema files in this repository are from Firefox Nightly.
-
 # report.sh output
 
-report.sh produces a report of API usage in your addon.  It will contain a status, rank and 
-description for each API call.  It also lists any bugs related to the API section.
+report.sh produces a report of API usage in your addon.  It will contain a status for each release, rank and
+description for each API call.  It also lists any bugs related to the API section.  The status columns are
+titled N, A, B and R for nightly, aurora, beta and release.
 
 ### status
 
 * blank means it is supported
-* NO means it is not implemented.  This may mean that it is scheduled to be implemented, or 
+* N means it is not implemented.  This may mean that it is scheduled to be implemented, or 
   that it will not be implemented in Firefox.
-* DEP means the API is deprecated, it should be followed by a line describing the replacement API call
+* D means the API is deprecated, it should be followed by a line describing the replacement API call
 
 ### rank
 
@@ -55,77 +55,81 @@ NOTE: web-ext output may not be up-to-date with the API status, however it is us
 
 ## report.sh
 
+**NOTE**:  You can see in the example below, chrome.history.getVisits and chrome.runtime.reload are not avialable on release, but are in upcomming releases.
+
 ```
 creating apiusage.csv...
 generating report...
-Skipping: ./schemas/context_menus_internal.json
-OK Rank API
+N A B R Rank API
 
 ======= chrome.app
-NO    18 chrome.app.getDetails
+N N N N   18 chrome.app.getDetails
 
 ======= chrome.browserAction
-      41 chrome.browserAction.setTitle
-      42 chrome.browserAction.setPopup
-      43 chrome.browserAction.setIcon
-      46 chrome.browserAction.onClicked
+N N N N   46 chrome.browserAction.onClicked
+          43 chrome.browserAction.setIcon
+          42 chrome.browserAction.setPopup
+          41 chrome.browserAction.setTitle
 Bug      1207597: browserAction icon should match appearance of native Firefox toolbar buttons
 Bug      1207692: provide a highlight state for browserActions
 Bug      1244789: Support richer user interactions in the chrome.browserAction API
 
 ======= chrome.contextMenus
-      38 chrome.contextMenus.removeAll
-       3 chrome.contextMenus.create
-      39 chrome.contextMenus.remove
-      40 chrome.contextMenus.onClicked
+           3 chrome.contextMenus.create
+N N N N   40 chrome.contextMenus.onClicked
+          39 chrome.contextMenus.remove
+          38 chrome.contextMenus.removeAll
 Bug      1253418: Support browser_action and page_action contexts in browser.contextMenus API
 Bug      1269062: [tracking] ContextMenus API support for Android WebExtensions
 Bug      1280370: contextMenus do not support other protocols (ex. 'magnet:*', 'acestream:*', 'sop:*')
 
 ======= chrome.extension
-      37 chrome.extension.getBackgroundPage
-       1 chrome.extension.getURL
-DEP   34 chrome.extension.onRequest
-         Please use $(ref:runtime.onMessage).
-NO    36 chrome.extension.onMessage
-NO    15 chrome.extension.sendMessage
-NO    33 chrome.extension.sendRequest
+          37 chrome.extension.getBackgroundPage
+           1 chrome.extension.getURL
+N N N N   36 chrome.extension.onMessage
+N N N N   34 chrome.extension.onRequest
+N N N N   15 chrome.extension.sendMessage
+N N N N   33 chrome.extension.sendRequest
 Bug      1213426: Complete the implementation of chrome.extension
 Bug      1263900: Complete test coverage for browser.extension.inIncognitoContext
 
 ======= chrome.google
-NO    32 chrome.google.com
-NO    31 chrome.google.com\
+N N N N   32 chrome.google.com
+N N N N   31 chrome.google.com\
+
+======= chrome.history
+      N  115 chrome.history.getVisits
+          51 chrome.history.search
 
 ======= chrome.i18n
-      29 chrome.i18n.getMessage
-NO    14 chrome.i18n.
+N N N N   14 chrome.i18n.
+          29 chrome.i18n.getMessage
 
 ======= chrome.runtime
-      13 chrome.runtime.getManifest
-       6 chrome.runtime.sendMessage
-NO    26 chrome.runtime.onMessageExternal
-      28 chrome.runtime.onMessage
-NO    12 chrome.runtime.id
-NO     2 chrome.runtime.lastError
+          13 chrome.runtime.getManifest
+N N N N   12 chrome.runtime.id
+N N N N    2 chrome.runtime.lastError
+N N N N   28 chrome.runtime.onMessage
+N N N N   26 chrome.runtime.onMessageExternal
+    N N  132 chrome.runtime.reload
+           6 chrome.runtime.sendMessage
 Bug      1213473: Complete the implementation of chrome.runtime
 Bug      1247435: Implement browser.runtime.onStartup
 Bug      1252871: Implement chrome.runtime.onInstalled
 Bug      1259944: runtime.sendMessage does not handle the three-argument form correctly.
 
 ======= chrome.tabs
-      11 chrome.tabs.executeScript
-       5 chrome.tabs.query
-DEP   21 chrome.tabs.sendRequest
-         Please use $(ref:runtime.sendMessage).
-      24 chrome.tabs.create
-      10 chrome.tabs.insertCSS
-       8 chrome.tabs.remove
-      25 chrome.tabs.captureVisibleTab
-       7 chrome.tabs.sendMessage
-      22 chrome.tabs.onUpdated
-       9 chrome.tabs.onRemoved
-      23 chrome.tabs.onActivated
+          25 chrome.tabs.captureVisibleTab
+          24 chrome.tabs.create
+          11 chrome.tabs.executeScript
+          10 chrome.tabs.insertCSS
+N N N N   23 chrome.tabs.onActivated
+N N N N    9 chrome.tabs.onRemoved
+N N N N   22 chrome.tabs.onUpdated
+           5 chrome.tabs.query
+           8 chrome.tabs.remove
+           7 chrome.tabs.sendMessage
+D D D D   21 chrome.tabs.sendRequest Please use $(ref:runtime.sendMessage).
 Bug      1190328: Test coverage for tabs extension API
 Bug      1209869: tabs.sendMessage does not send messages to tab pages
 Bug      1213477: Complete the implementation of chrome.tabs
@@ -137,14 +141,13 @@ Bug      1260550: Support messaging interfaces in the tabs API on Android
 Bug      1269456: Add permissions item to allow use of tabs.create/tabs.update
 
 ======= chrome.windows
-      20 chrome.windows.create
-      19 chrome.windows.onFocusChanged
+          20 chrome.windows.create
+N N N N   19 chrome.windows.onFocusChanged
 Bug      1213484: Complete the implementation of chrome.windows
 Bug      1253129: Support focused=false in the browser.windows.create
 Bug      1261963: createData should be optional for browser.windows.create
 Bug      1273146: WebExtensions: chrome.windows.create - callback parameter (window) does not have window.tabs property
 Bug      1275275: New windows should not be animated to their final size/position
-
 ```
 
 ## lint.sh

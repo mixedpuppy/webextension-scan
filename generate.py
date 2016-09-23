@@ -9,14 +9,17 @@ import operator
 GET_BUGS = True
 
 schema_locations = [
-    './schemas/',
+    './schemas/nightly/',
+    './schemas/aurora/',
+    './schemas/beta/',
+    './schemas/release/',
 ]
 schema_skip = [
-    './schemas/context_menus_internal.json',
+    'context_menus_internal.json',
 ]
 usage_file = 'apiusage.csv'
 
-parsed_schema = {}
+versioned_schemas = {}
 
 def bugs(whiteboard):
     # print "search bugs for %s" % whiteboard
@@ -52,29 +55,28 @@ def parse_usage():
             res[api] = k + 1
     return res
 
-def print_schema(schema, type_, api):
+def get_status(schema, type_, api):
     if not schema:
-        return
+        return None
+    res = []
     for key, value in schema.items():
         rank = parsed_usage.get(value['usage'], None)
         if not rank:
             continue
-        del parsed_usage[value['usage']]
         if value['deprecated']:
-            status = "DEP"
+            status = "D"
         else:
-            status = '' if value['supported'] else 'NO'
-        print "%-3s %04s %s" % (status, rank, value['full'],)
-        if value['deprecated']:
-            print "         %s" % value['deprecated']
+            status = '' if value['supported'] else 'N'
+        res.append((status, rank, value['full'], value['deprecated']))
+    return res
 
 def process_schemas(directories):
     for directory in directories:
+        version = os.path.basename(directory[:-1])
         for fname in glob.glob(directory + '*.json'):
-            if fname in schema_skip:
-                print 'Skipping:', fname
+            if os.path.basename(fname) in schema_skip:
+                # print 'Skipping:', fname
                 continue
-            # print 'Parsing:', fname
             lines = open(fname, 'r').readlines()
             # Strip out stupid comments.
             newlines = []
@@ -82,10 +84,12 @@ def process_schemas(directories):
                 if not line.startswith('//'):
                     newlines.append(line)
 
-            process_json(json.loads('\n'.join(newlines)))
+            process_json(version, json.loads('\n'.join(newlines)))
 
 
-def process_json(data):
+def process_json(version, data):
+    versioned_schemas.setdefault(version, {})
+    parsed_schema = versioned_schemas.get(version)
     for element in data:
         for k, v in element.items():
             if k == 'namespace' and v != 'manifest':
@@ -95,13 +99,12 @@ def process_json(data):
         for k, v in element.items():
             if k == 'functions':
                 for function in v:
-                    process_type('functions', function)
+                    process_type(parsed_schema, 'functions', function)
             if k == 'events':
                 for event in v:
-                    process_type('events', event)
+                    process_type(parsed_schema, 'events', event)
 
-
-def process_type(type_, data):
+def process_type(parsed_schema, type_, data):
     namespace = parsed_schema['__current__']
     parsed_schema.setdefault(namespace, {})
     parsed_schema[namespace].setdefault(type_, {})
@@ -116,19 +119,42 @@ def process_type(type_, data):
     }
 
 def print_usage():
-    print "OK Rank API"
+    print "N A B R Rank API"
     apis = {}
     for key, value in sorted(parsed_usage.items(), key=operator.itemgetter(0)):
         apis[key.split('.')[1]]=1
 
+    v = {}
     for api in sorted(apis):
         print "\n======= chrome.%s" % (api,)
-        schemas = parsed_schema.get(api, {})
-        print_schema(schemas.get('functions', []), 'functions', api)
-        print_schema(schemas.get('events', []), 'events', api)
+        r = v[api] = {}
+        # scan oldest to newest to catch deprecation data
+        for version in ['release', 'beta', 'aurora', 'nightly']:
+            parsed_schema = versioned_schemas[version]
+            schemas = parsed_schema.get(api, {})
+            # print version, api
+            res = get_status(schemas.get('functions', []), 'functions', api) or \
+                get_status(schemas.get('events', []), 'events', api)
+            if not res:
+                continue
+            for a in res:
+                e = r.setdefault(a[2], {})
+                e.setdefault('release', 'N')
+                e.setdefault('beta', 'N')
+                e.setdefault('aurora', 'N')
+                e.setdefault('nightly', 'N')
+                e["full"] = a[2]
+                e["rank"] = a[1]
+                e["deprecated"] = a[3] or ''
+                e[version] = a[0]
+
         for key, value in sorted(parsed_usage.items(), key=operator.itemgetter(0)):
-            if key.startswith("chrome.%s" % (api,)):
-                print "NO  %04s %s" % (value, key,)
+            d = r.get(key, None)
+            if d:
+                print "{nightly:1} {aurora:1} {beta:1} {release:1} {rank:4} {full} {deprecated}".format(**d)
+            elif key.startswith("chrome.%s" % (api,)):
+                print "N N N N %04s %s" % (value, key,)
+
         pile_of_bugs = None
         if GET_BUGS:
             pile_of_bugs = bugs(api)
